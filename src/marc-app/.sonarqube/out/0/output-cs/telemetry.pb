@@ -1,0 +1,1 @@
+AR*C:\gitr\Btest\src\marc-app\marc-app.csproj¢net10.0òCSharp14

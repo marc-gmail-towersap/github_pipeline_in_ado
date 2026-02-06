@@ -1,0 +1,9 @@
+Ê
+¾C:\gitr\Btest\src\marc-app\obj\Debug\net10.0\Microsoft.AspNetCore.App.SourceGenerators\Microsoft.AspNetCore.SourceGenerators.PublicProgramSourceGenerator\PublicTopLevelProgram.Generated.g.csutf-8U
+JC:\gitr\Btest\src\marc-app\obj\Debug\net10.0\marc-app.RazorAssemblyInfo.csutf-8P
+EC:\gitr\Btest\src\marc-app\obj\Debug\net10.0\marc-app.AssemblyInfo.csutf-8g
+\C:\gitr\Btest\src\marc-app\obj\Debug\net10.0\.NETCoreApp,Version=v10.0.AssemblyAttributes.csutf-8R
+GC:\gitr\Btest\src\marc-app\obj\Debug\net10.0\marc-app.GlobalUsings.g.csutf-8.
+%C:\gitr\Btest\src\marc-app\Program.csutf-8<
+3C:\gitr\Btest\src\marc-app\Models\ErrorViewModel.csutf-8A
+8C:\gitr\Btest\src\marc-app\Controllers\HomeController.csutf-8

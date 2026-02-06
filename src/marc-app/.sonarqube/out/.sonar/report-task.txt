@@ -1,0 +1,7 @@
+organization=marctowersap0500
+projectKey=marctowersap0500_Btest
+serverUrl=https://sonarcloud.io
+serverVersion=8.0.0.77855
+dashboardUrl=https://sonarcloud.io/dashboard?id=marctowersap0500_Btest
+ceTaskId=AZs38hubAPePeZ944GrO
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZs38hubAPePeZ944GrO
