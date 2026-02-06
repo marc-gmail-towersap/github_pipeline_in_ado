@@ -1,0 +1,103 @@
+
+# Trigger configuration
+pr:
+  branches:
+    include:
+      - main
+      - dev
+      - qa
+
+  paths:
+    include:
+      - infra/**
+
+variables:
+- group: terraform
+
+# Stages
+stages:
+- stage: plan
+  jobs:
+  - job: Terraform_Plan
+    displayName: 'Terraform Plan'
+    steps:
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: 'latest'
+        azureSubscription: 'marct-dev-azure-sub'
+
+    - task: TerraformTask@5
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/infra'
+        backendServiceArm: 'terraform-backend'
+        backendAzureRmResourceGroupName: 'marc-keep-rg'
+        backendAzureRmStorageAccountName: 'marcterraformbackend'
+        backendAzureRmContainerName: 'tfbackend'
+        backendAzureRmKey: 'tf/terraform.tfstate'
+
+- stage: Dev_Deploy
+  dependsOn: [plan]
+  condition: succeeded('plan')
+  jobs:
+    - deployment: terraform_apply
+      environment: 'dev'
+      continueOnError: false
+      displayName: 'terraform apply'
+      strategy:
+       runOnce:
+         deploy:          
+           steps:
+           - task: TerraformInstaller@1
+             inputs:
+               terraformVersion: 'latest'
+
+- stage: QA_Deploy
+  dependsOn: [Dev_Deploy]
+  condition: succeeded('Dev_Deploy')
+  jobs:
+    - deployment: terraform_apply
+      environment: 'approvalgates-qa'
+      continueOnError: false
+      displayName: 'terraform apply'
+      strategy:
+       runOnce:
+         deploy:          
+           steps:
+           - task: TerraformInstaller@1
+             inputs:
+               terraformVersion: 'latest'
+
+- stage: UAT_Deploy
+  dependsOn: [QA_Deploy]
+  condition: succeeded('QA_Deploy')
+  jobs:
+    - deployment: terraform_apply
+      environment: 'approvalgates-uat'
+      continueOnError: false
+      displayName: 'terraform apply'
+      strategy:
+       runOnce:
+         deploy:          
+           steps:
+           - task: TerraformInstaller@1
+             inputs:
+               terraformVersion: 'latest'
+
+- stage: Prod_Deploy
+  dependsOn: [UAT_Deploy]
+  condition: succeeded('UAT_Deploy')
+  jobs:
+    - deployment: terraform_apply
+      environment: 'approvalgates-production'
+      continueOnError: false
+      displayName: 'terraform apply'
+      strategy:
+       runOnce:
+         deploy:          
+           steps:
+           - task: TerraformInstaller@1
+             inputs:
+               terraformVersion: 'latest'
+          

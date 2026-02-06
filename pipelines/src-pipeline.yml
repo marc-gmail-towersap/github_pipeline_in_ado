@@ -1,0 +1,202 @@
+
+
+# Trigger configurationn 
+pr:
+  branches:
+    include:
+      - main
+      - dev
+      - qa
+
+  paths:
+    include:
+      - src/**
+
+variables:
+  solution: 'src/marc-app/marc-app.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  ${{ if eq(variables['BuildSourceBranchName'], 'master') }}:
+    deployTarget: 'production'
+  ${{ if eq(variables['BuildSourceBranchName'], 'uat') }}:
+    deployTarget: 'uat'
+  ${{ if eq(variables['BuildSourceBranchName'], 'qa') }}:
+    deployTarget: 'qa'
+  ${{ if eq(variables['BuildSourceBranchName'], 'dev') }}:
+    deployTarget: 'dev'
+  ${{ if eq(variables['BuildSourceBranchName'], 'marcdev') }}:
+    deployTarget: 'dev'
+
+pool:
+  vmImage: 'windows-latest'
+
+# Stages
+stages:
+- stage: build
+  jobs:
+  - job: Build
+    displayName: 'build and test'
+    steps:
+    - checkout: self
+    - task: NugetToolInstaller@1
+
+    # - task: NugetAuthenticate@1
+    #  inputs:
+    #    forceReinstallCredentialProvider: true
+    #    nugetServiceConnections: 'Telerik Nuget Feed'
+
+    - task: UseDotNet@2
+      displayName: 'Install dotnet 10'
+      inputs:
+        packageType: 'sdk'
+        version: '10.0.x'
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'restore'
+        projects: '**/*.sln'
+        # feedsToUse: 'config'
+        # nugetConfigPath: 'nuget.config'
+        # externalFeedCredentials: 'Telerik NuGet Feed'
+
+    - task: VSBuild@1
+      displayName: 'build the code and compress to a zip'
+      inputs:
+        solution: '$(solution)'
+        msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+
+    - task: VSTest@2
+      displayName: 'unit test'
+      inputs:
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'store zip to nuget repository in ADO'
+      inputs:
+        targetPath: $(build.artifactStagingDirectory)\WebApp.zip
+        artifactName: marc-app
+
+
+
+- stage: Dev_Deploy
+  dependsOn: [build]
+  condition: and(succeeded('build'), 
+             or( eq(variables['build.SourceBranch'], 'refs/heads/dev'),
+                 eq(variables['build.SourceBranch'], 'refs/heads/qa'),
+                 eq(variables['build.SourceBranch'], 'refs/heads/uat'),
+                 eq(variables['build.SourceBranch'], 'refs/heads/main')
+                 
+             ))
+  jobs:
+  - deployment: Deploy_Dev
+    continueOnError: false
+    environment: 'approvalgates-dev'
+    displayName: 'Deploy to Dev'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: 'download the built zip to get ready to deploy'
+            inputs:
+              artifactName: marc-app
+              targetPath: $(System.DefaultWorkingDirectory)/marc-app
+
+          - task: PowerShell@2
+            displayName: 'find the zip'
+            inputs:
+              targetType: inline
+              script: |
+                Get-ChildItem -recurse *.zip -path $(System.DefaultWorkingDirectory)
+        
+          - task: AzureRmWebAppDeployment@5
+            displayName: 'deploy zip to Azure App Service'
+            inputs:
+              ConnectionType: 'AzureRM'
+              azureSubscription: 'marct-dev-azure-sub'
+              appType: 'webApp'
+              WebAppName: 'marc-app'
+              deployToSlotOrASE: false
+              ResourceGroupName: 'marct-rg'
+              # packageForLinux: '$(System.DefaultWorkingDirectory)/marct-app/**/*.zip'
+
+- stage: QA_Deploy
+  dependsOn: [Dev_Deploy]
+  condition: succeeded('Dev_Deploy')
+  jobs:
+  - deployment: Deploy_QA
+    environment: 'approvalgates-qa'
+    continueOnError: false
+    displayName: 'Deploy to QA'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: 'download the built zip to get ready to deploy'
+            inputs:
+              artifactName: marc-app
+              targetPath: $(System.DefaultWorkingDirectory)/marc-app
+
+          - task: PowerShell@2
+            displayName: 'find the zip'
+            inputs:
+              targetType: inline
+              script: |
+                Get-ChildItem -recurse *.zip -path $(System.DefaultWorkingDirectory)
+
+
+- stage: UAT_Deploy
+  dependsOn: [QA_Deploy]
+  condition: succeeded('QA_Deploy')
+  jobs:
+  - deployment: Deploy_UAT
+    environment: 'approvalgates-uat'
+    continueOnError: false
+    displayName: 'Deploy to UAT'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: 'download the built zip to get ready to deploy'
+            inputs:
+              artifactName: marc-app
+              targetPath: $(System.DefaultWorkingDirectory)/marc-app
+
+          - task: PowerShell@2
+            displayName: 'find the zip'
+            inputs:
+              targetType: inline
+              script: |
+                Get-ChildItem -recurse *.zip -path $(System.DefaultWorkingDirectory)
+
+
+- stage: Prod_Deploy
+  dependsOn: [UAT_Deploy]
+  condition: succeeded('UAT_Deploy')
+  jobs:
+  - deployment: Deploy_Prod
+    environment: 'approvalgates-production'
+    continueOnError: false
+    displayName: 'Deploy to Prod'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: 'download the built zip to get ready to deploy'
+            inputs:
+              artifactName: marc-app
+              targetPath: $(System.DefaultWorkingDirectory)/marc-app
+
+          - task: PowerShell@2
+            displayName: 'find the zip'
+            inputs:
+              targetType: inline
+              script: |
+                Get-ChildItem -recurse *.zip -path $(System.DefaultWorkingDirectory)
+
