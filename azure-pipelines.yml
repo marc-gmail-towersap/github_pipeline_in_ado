@@ -108,36 +108,36 @@ stages:
 
 
 
-#- stage: Dev_Deploy
-#  dependsOn: [build]
-#  condition: and(succeeded('build'), 
-#             or( eq(variables['build.SourceBranch'], 'refs/heads/dev'),
-#                 eq(variables['build.SourceBranch'], 'refs/heads/qa'),
-#                 eq(variables['build.SourceBranch'], 'refs/heads/uat'),
-#                 eq(variables['build.SourceBranch'], 'refs/heads/main')
+- stage: Dev_Deploy
+  dependsOn: [build]
+  condition: and(succeeded('build'), 
+             or( eq(variables['build.SourceBranch'], 'refs/heads/dev'),
+                 eq(variables['build.SourceBranch'], 'refs/heads/qa'),
+                 eq(variables['build.SourceBranch'], 'refs/heads/uat'),
+                 eq(variables['build.SourceBranch'], 'refs/heads/main')
                  
-#             ))
-  #jobs:
-  #- deployment: Deploy_Dev
-  #  continueOnError: false
-  #  environment: 'approvalgates-dev'
-  #  displayName: 'Deploy to Dev'
-  #  strategy:
-  #    runOnce:
-  #      deploy:
-  #        steps:
-  #        - task: DownloadPipelineArtifact@2
-  #          displayName: 'download the built zip to get ready to deploy'
-  #          inputs:
-  #            artifactName: marc-app
-  #            targetPath: $(System.DefaultWorkingDirectory)/marc-app
+             ))
+  jobs:
+  - deployment: Deploy_Dev
+    continueOnError: false
+    environment: 'approvalgates-dev'
+    displayName: 'Deploy to Dev'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: 'download the built zip to get ready to deploy'
+            inputs:
+              artifactName: marc-app
+              targetPath: $(System.DefaultWorkingDirectory)/marc-app
 
-  #        - task: PowerShell@2
-  #          displayName: 'find the zip'
-  #          inputs:
-  #            targetType: inline
-  #            script: |
-  #              Get-ChildItem -recurse *.zip -path $(System.DefaultWorkingDirectory)
+          - task: PowerShell@2
+            displayName: 'find the zip'
+            inputs:
+              targetType: inline
+              script: |
+                Get-ChildItem -recurse *.zip -path $(System.DefaultWorkingDirectory)
         
   #        - task: AzureRmWebAppDeployment@5
   #          displayName: 'deploy zip to Azure App Service'
