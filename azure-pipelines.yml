@@ -66,14 +66,14 @@ stages:
         # nugetConfigPath: 'nuget.config'
         # externalFeedCredentials: 'Telerik NuGet Feed'
 
-    #- task: SonarCloudPrepare@4
-    #  displayName: 'preparing SonarQube'
-    #  inputs:
-    #    SonarQube: 'sonarqube'
-    #    organization: 'marctowersap0500'
-    #    scannerMode: 'dotnet'
-    #    projectKey: 'marctowersap0500_Btest'
-    #    projectName: 'Btest'
+    - task: SonarCloudPrepare@4
+      displayName: 'preparing SonarQube'
+      inputs:
+        SonarQube: 'sonarqube'
+        organization: 'marctowersap0500'
+        scannerMode: 'dotnet'
+        projectKey: 'marctowersap0500_repo-in-github'
+        projectName: 'repo-in-github'
 
     - task: VSBuild@1
       displayName: 'build the code and compress to a zip'
