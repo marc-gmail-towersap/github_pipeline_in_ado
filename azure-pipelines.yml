@@ -56,7 +56,8 @@ stages:
       displayName: 'Install dotnet 9'
       inputs:
         packageType: 'sdk'
-        version: '9.0.3'
+        version: '9.0.x'
+        installationPath: $(Agent.ToosDirectory)/dotnet
 
     - task: DotNetCoreCLI@2
       inputs:
