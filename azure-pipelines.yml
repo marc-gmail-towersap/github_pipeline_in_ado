@@ -56,7 +56,8 @@ stages:
       displayName: 'Install dotnet 10'
       inputs:
         packageType: 'sdk'
-        version: '10.0.x'
+        version: '9.0.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
 
     - task: DotNetCoreCLI@2
       inputs:
