@@ -70,7 +70,7 @@ stages:
     - task: SonarCloudPrepare@4
       displayName: 'preparing SonarQube'
       inputs:
-        SonarQube: 'sonarqube-repo-in-github'
+        SonarCloud: 'sonarqube-repo-in-github'
         organization: 'marctowersap0500'
         scannerMode: 'dotnet'
         projectKey: 'marctowersap0500_repo-in-github'
