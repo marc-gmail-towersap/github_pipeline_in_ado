@@ -91,8 +91,6 @@ stages:
 
     - task: SonarCloudAnalyze@4
       displayName: 'performing SonarQube analysis'
-      inputs:
-        jdkversion: 'JAVA_HOME_17_X64'
 
     - task: SonarCloudPublish@4
       displayName: 'publishing sonarqube results to sonarcloud.io'
