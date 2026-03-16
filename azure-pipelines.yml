@@ -53,10 +53,11 @@ stages:
     #    nugetServiceConnections: 'Telerik Nuget Feed'
 
     - task: UseDotNet@2
-      displayName: 'Install dotnet 10'
+      displayName: 'Install dotnet 9'
       inputs:
         packageType: 'sdk'
-        version: '10.0.x'
+        version: '9.0.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
 
     - task: DotNetCoreCLI@2
       inputs:
@@ -69,7 +70,7 @@ stages:
     - task: SonarCloudPrepare@4
       displayName: 'preparing SonarQube'
       inputs:
-        SonarQube: 'sonarqube-repo-in-github'
+        SonarCloud: 'repo-in-github_sonarcloud'
         organization: 'marctowersap0500'
         scannerMode: 'dotnet'
         projectKey: 'marctowersap0500_repo-in-github'
@@ -90,9 +91,7 @@ stages:
         configuration: '$(buildConfiguration)'
 
     - task: SonarCloudAnalyze@4
-      displayName: 'performing SonarQube analysis'
-      inputs:
-        jdkversion: 'JAVA_HOME_17_X64'
+      displayName: 'performing SonarQube cloud analysis'
 
     - task: SonarCloudPublish@4
       displayName: 'publishing sonarqube results to sonarcloud.io'
